@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "default_policy": "deny-undeclared-dependency",
+  "development_harness": {
+    "paths": ["CLAUDE.md", "AGENTS.md", "PROGRESS.md", "feature_list.json", "feature_list.schema.json", "session-handoff.md", "DECISIONS.md", ".harness/**", "scripts/**", "init.sh", "init.ps1"],
+    "runtime_import_forbidden": true
+  },
+  "domains": [
+    {"name": "config", "prefixes": ["config/"], "may_import": []},
+    {"name": "llm", "prefixes": ["src/llm/"], "may_import": ["config", "observability"]},
+    {"name": "security", "prefixes": ["src/security/"], "may_import": []},
+    {"name": "tools", "prefixes": ["src/tools/"], "may_import": []},
+    {"name": "harness", "prefixes": ["src/harness/"], "may_import": ["config", "security"]},
+    {"name": "agents", "prefixes": ["src/agents/"], "may_import": ["harness", "tools"]},
+    {"name": "memory", "prefixes": ["src/memory/"], "may_import": ["config", "llm", "observability"]},
+    {"name": "integrations", "prefixes": ["src/integrations/"], "may_import": ["config", "memory", "observability"]},
+    {"name": "healing", "prefixes": ["src/healing/"], "may_import": ["config", "agents"]},
+    {"name": "orchestrator", "prefixes": ["src/orchestrator/"], "may_import": ["config", "agents", "healing", "harness", "memory", "observability", "tools"]},
+    {"name": "pipeline", "prefixes": ["src/pipeline/"], "may_import": ["config", "memory", "observability", "orchestrator"]},
+    {"name": "mcp", "prefixes": ["src/mcp/"], "may_import": ["tools", "integrations"]},
+    {"name": "cli", "prefixes": ["cli/"], "may_import": ["llm", "integrations", "memory", "observability", "orchestrator", "pipeline", "mcp", "evals"]},
+    {"name": "evals", "prefixes": ["evals/"], "may_import": ["agents", "llm"]},
+    {"name": "skills", "prefixes": ["skills/"], "may_import": []},
+    {"name": "dashboard", "prefixes": ["dashboard/"], "may_import": ["config", "integrations", "memory"]},
+    {"name": "observability", "prefixes": ["src/observability/"], "may_import": ["config"]}
+  ],
+  "runtime_roles": {
+    "triage": {"tools": [], "git_commands": []},
+    "investigator": {"tools": ["read_file", "list_files", "grep"], "git_commands": []},
+    "fixer": {"tools": ["read_file", "list_files", "grep", "edit_file", "write_file", "run_tests", "run_linter", "git"], "git_commands": ["status", "diff", "add", "commit", "log"]},
+    "tester": {"tools": ["read_file", "list_files", "grep", "edit_file", "write_file", "run_tests", "run_linter", "git"], "git_commands": ["status", "diff", "add", "commit", "log"]},
+    "reviewer": {"tools": ["read_file", "list_files", "grep", "run_tests", "run_linter", "git"], "git_commands": ["status", "diff", "log"]},
+    "base": {"tools": ["read_file", "list_files", "grep"], "git_commands": []}
+  },
+  "protected": [
+    {"paths": ["src/security/**", "src/tools/**"], "risk": "critical", "verification": ["offline"]},
+    {"paths": ["src/harness/**", "src/agents/base.py"], "risk": "high", "verification": ["offline", "agent-evals"]},
+    {"paths": ["src/llm/**", "config/**"], "risk": "high", "verification": ["offline"]},
+    {"paths": ["src/orchestrator/**"], "risk": "high", "verification": ["offline"]},
+    {"paths": [".github/workflows/**"], "risk": "high", "verification": ["offline"]}
+  ]
+}

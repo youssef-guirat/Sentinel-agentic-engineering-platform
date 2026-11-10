@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "rules": [
+    {
+      "id": "ARCH001",
+      "kind": "declared_dependency_direction",
+      "what": "Runtime modules may import only domains declared in .harness/scope.json.",
+      "why": "Hidden back-edges make specialized agents and low-level security code affect orchestration unpredictably.",
+      "fix": "Move the dependency behind an existing boundary or update scope.json with an explicit reviewed rationale."
+    },
+    {
+      "id": "ARCH002",
+      "kind": "no_development_harness_imports",
+      "what": "Runtime Python must not import development-harness state or scripts.",
+      "why": "The product must run independently of coding-agent session state.",
+      "fix": "Move runtime behavior into src/ and keep feature/progress/bootstrap logic outside the product."
+    },
+    {
+      "id": "ARCH003",
+      "kind": "single_active_feature",
+      "what": "At most one feature may be active unless explicit disjoint ownership is introduced.",
+      "why": "One active feature prevents scope drift and unverifiable partial work.",
+      "fix": "Finish or block the current feature before activating another."
+    }
+  ]
+}

@@ -1,0 +1,238 @@
+{
+  "$schema": "./feature_list.schema.json",
+  "features": [
+    {
+      "id": "feat-001-development-harness",
+      "name": "Development harness control plane",
+      "behavior": "External coding agents can start, stay in scope, verify, and hand off work using version-controlled root artifacts.",
+      "dependencies": [],
+      "status": "passing",
+      "owner": "development-harness",
+      "risk_level": "medium",
+      "allowed_paths": [
+        "CLAUDE.md",
+        "AGENTS.md",
+        "PROGRESS.md",
+        "session-handoff.md",
+        "DECISIONS.md",
+        "feature_list.json",
+        "feature_list.schema.json",
+        ".harness/**",
+        "scripts/**",
+        "docs/development/**",
+        "init.sh",
+        "init.ps1",
+        "Makefile",
+        ".python-version",
+        ".gitignore",
+        "pyproject.toml"
+      ],
+      "forbidden_paths": [
+        "src/**"
+      ],
+      "verification": [
+        "offline"
+      ],
+      "done_criteria": [
+        "State schema validates",
+        "Offline verification command is documented",
+        "Bootstrap wrappers share one implementation",
+        "Scope rules are machine-readable"
+      ],
+      "baseline_commit": "",
+      "evidence": "2026-10-21T16:43:25+00:00: profiles passed: offline; baseline: initial-uncommitted-bootstrap"
+    },
+    {
+      "id": "feat-002-offline-baseline",
+      "name": "Deterministic offline baseline",
+      "behavior": "Core runtime behavior is covered by deterministic tests and lint passes without provider access.",
+      "dependencies": [
+        "feat-001-development-harness"
+      ],
+      "status": "passing",
+      "owner": "runtime-quality",
+      "risk_level": "high",
+      "allowed_paths": [
+        "src/**",
+        "tests/**",
+        "config/**",
+        "pyproject.toml",
+        "requirements.txt",
+        "docs/**",
+        "PROGRESS.md",
+        "feature_list.json"
+      ],
+      "forbidden_paths": [
+        "evals/cases.py"
+      ],
+      "verification": [
+        "offline"
+      ],
+      "done_criteria": [
+        "Ruff passes",
+        "Pytest passes",
+        "AgentHarness step limit works",
+        "Imports do not create runtime data directories"
+      ],
+      "baseline_commit": "",
+      "evidence": "2026-10-21T16:43:27+00:00: profiles passed: offline; baseline: initial-uncommitted-bootstrap"
+    },
+    {
+      "id": "feat-003-role-boundaries",
+      "name": "Runtime role capability boundaries",
+      "behavior": "Each specialized runtime agent receives only the tools and Git operations required by its role.",
+      "dependencies": [
+        "feat-002-offline-baseline"
+      ],
+      "status": "passing",
+      "owner": "runtime-security",
+      "risk_level": "high",
+      "allowed_paths": [
+        "src/agents/**",
+        "src/tools/**",
+        "src/security/**",
+        "tests/**",
+        ".harness/scope.json",
+        "docs/development/agent-boundaries.md",
+        "PROGRESS.md",
+        "feature_list.json"
+      ],
+      "forbidden_paths": [
+        "config/settings.py",
+        "evals/cases.py"
+      ],
+      "verification": [
+        "offline"
+      ],
+      "done_criteria": [
+        "Read-only agents cannot write",
+        "Reviewer Git access is read-only",
+        "Path containment uses resolved ancestry",
+        "Capability tests pass"
+      ],
+      "baseline_commit": "",
+      "evidence": "2026-10-21T16:43:29+00:00: profiles passed: offline; baseline: initial-uncommitted-bootstrap"
+    },
+    {
+      "id": "feat-004-ci-and-evals",
+      "name": "CI and live eval separation",
+      "behavior": "Pull requests run deterministic checks while provider-backed evals run only by explicit dispatch or schedule.",
+      "dependencies": [
+        "feat-002-offline-baseline"
+      ],
+      "status": "passing",
+      "owner": "delivery",
+      "risk_level": "medium",
+      "allowed_paths": [
+        ".github/workflows/**",
+        "evals/**",
+        "scripts/**",
+        "README.md",
+        "docs/10_evals_cicd.md",
+        "PROGRESS.md",
+        "feature_list.json"
+      ],
+      "forbidden_paths": [
+        "src/security/**"
+      ],
+      "verification": [
+        "offline"
+      ],
+      "done_criteria": [
+        "Workflow files are in the correct directory",
+        "Offline CI has no provider dependency",
+        "Live eval is manual and credential-scoped"
+      ],
+      "baseline_commit": "",
+      "evidence": "2026-10-21T16:43:31+00:00: profiles passed: offline; baseline: initial-uncommitted-bootstrap"
+    },
+    {
+      "id": "feat-005-live-agent-eval",
+      "name": "Provider-backed acceptance evidence",
+      "behavior": "The live Sentinel repair eval reaches its configured pass-rate gate on an approved provider or local Ollama.",
+      "dependencies": [
+        "feat-002-offline-baseline",
+        "feat-003-role-boundaries",
+        "feat-004-ci-and-evals"
+      ],
+      "status": "blocked",
+      "owner": "agent-quality",
+      "risk_level": "high",
+      "allowed_paths": [
+        "evals/**",
+        "src/agents/**",
+        "src/harness/**",
+        "PROGRESS.md",
+        "feature_list.json"
+      ],
+      "forbidden_paths": [
+        ".github/workflows/sentinel-fix.yml"
+      ],
+      "verification": [
+        "offline",
+        "agent-evals"
+      ],
+      "done_criteria": [
+        "Offline gate passes",
+        "Agent eval pass rate is at least 80 percent",
+        "Provider and date are recorded"
+      ],
+      "baseline_commit": "",
+      "evidence": "Blocked 2026-10-21: offline gate passes, but live provider/Ollama evaluation was not authorized or available."
+    },
+    {
+      "id": "feat-006-production-hardening",
+      "name": "Production observability and reliability hardening",
+      "behavior": "Sentinel records complete local and GitHub execution telemetry, prevents duplicate work, enforces bounded reliable orchestration, and recovers safely from interrupted runs.",
+      "dependencies": [
+        "feat-002-offline-baseline",
+        "feat-003-role-boundaries",
+        "feat-004-ci-and-evals"
+      ],
+      "status": "passing",
+      "owner": "runtime-reliability",
+      "risk_level": "critical",
+      "allowed_paths": [
+        "config/**",
+        "src/llm/**",
+        "src/integrations/**",
+        "src/memory/**",
+        "src/orchestrator/**",
+        "src/pipeline/**",
+        "src/observability/**",
+        "cli/**",
+        "dashboard/**",
+        "scripts/**",
+        "tests/**",
+        "docs/**",
+        ".harness/**",
+        ".github/workflows/**",
+        "README.md",
+        "PROGRESS.md",
+        "session-handoff.md",
+        "DECISIONS.md",
+        "feature_list.json"
+      ],
+      "forbidden_paths": [
+        "evals/cases.py",
+        "src/security/**",
+        "src/tools/**"
+      ],
+      "verification": [
+        "offline"
+      ],
+      "done_criteria": [
+        "Dashboard receives model metrics, direct fix tasks, and synchronized GitHub workflow runs",
+        "Integration tests cover orchestrator, provider, GitHub, worktree, poisoning, self-healing, and reviewer failure paths",
+        "Structured logs include request correlation IDs",
+        "Provider and GitHub operations use bounded retry with exponential backoff",
+        "Duplicate issues are claimed atomically",
+        "Agent stages and background tasks support bounded timeout and cancellation",
+        "Token budgets are enforced before provider calls",
+        "SQLite schema migrations are versioned and interrupted tasks recover safely"
+      ],
+      "baseline_commit": "",
+      "evidence": "2026-10-25T13:31:37+00:00: profiles passed: offline; baseline: initial-uncommitted-bootstrap"
+    }
+  ]
+}

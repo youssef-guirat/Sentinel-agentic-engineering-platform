@@ -1,0 +1,39 @@
+name: Sentinel Auto-Fix
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  auto-fix:
+    if: contains(github.event.issue.labels.*.name, 'auto-fix')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11.9"
+          cache: pip
+      - run: python -m pip install --upgrade pip
+      - run: python -m pip install -r requirements.txt
+      - run: python scripts/verify.py --offline
+      - name: Configure Git identity
+        run: |
+          git config user.name "sentinel-bot"
+          git config user.email "sentinel-bot@users.noreply.github.com"
+      - name: Run Sentinel headless
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: >-
+          python -m cli.sentinel fix
+          --issue ${{ github.event.issue.number }}
+          --repo ${{ github.repository }}

@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sentinel.local/schemas/feature-list.schema.json",
+  "title": "Sentinel development feature ledger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["features"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "features": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "behavior", "dependencies", "status", "owner", "risk_level", "allowed_paths", "forbidden_paths", "verification", "done_criteria", "baseline_commit", "evidence"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^feat-[0-9]{3}-[a-z0-9-]+$"},
+          "name": {"type": "string", "minLength": 3},
+          "behavior": {"type": "string", "minLength": 10},
+          "dependencies": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "status": {"enum": ["planned", "active", "blocked", "passing"]},
+          "owner": {"type": "string", "minLength": 1},
+          "risk_level": {"enum": ["low", "medium", "high", "critical"]},
+          "allowed_paths": {"type": "array", "items": {"type": "string"}, "minItems": 1, "uniqueItems": true},
+          "forbidden_paths": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+          "verification": {"type": "array", "items": {"enum": ["offline", "agent-evals"]}, "minItems": 1, "uniqueItems": true},
+          "done_criteria": {"type": "array", "items": {"type": "string", "minLength": 3}, "minItems": 1},
+          "baseline_commit": {"type": "string"},
+          "evidence": {"type": "string"}
+        }
+      }
+    }
+  }
+}

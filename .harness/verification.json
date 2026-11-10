@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "profiles": {
+    "offline": {
+      "description": "Deterministic state, syntax, architecture, lint, and test checks.",
+      "network": false,
+      "args": ["{python}", "scripts/verify.py", "--offline"]
+    },
+    "agent-evals": {
+      "description": "Provider-backed behavioral acceptance suite.",
+      "network": true,
+      "args": ["{python}", "scripts/verify.py", "--agent-evals"]
+    }
+  }
+}
